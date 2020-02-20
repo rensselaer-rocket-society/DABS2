@@ -15,6 +15,7 @@ void PositionEstimator::reset()
 {
     covar.fill(0);
     state.fill(0);
+    K = 0;
 }
 
 void PositionEstimator::predict(float accel, float cost, float step)

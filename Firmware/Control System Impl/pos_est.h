@@ -1,3 +1,6 @@
+#ifndef POS_EST_H
+#define POS_EST_H
+
 #include "matrixmath.hpp"
 
 namespace Control {
@@ -22,3 +25,5 @@ public:
 };
 
 }
+
+#endif

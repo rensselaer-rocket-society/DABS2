@@ -23,8 +23,14 @@ static inline float tanc(float x) {
 
 AttitudeEstimator::AttitudeEstimator()
 {
+    reset();
+}
+
+void AttitudeEstimator::reset()
+{
     attitude = Quaternion(1,0,0,0);
     covar.fill(0);
+    cosineTheta = 1;
 }
 
 
@@ -35,10 +41,12 @@ void AttitudeEstimator::setReference(const Vec<3>& refMag)
 
 inline void AttitudeEstimator::resetq(const Vec<3>& aerr)
 {
+
     Quaternion dq(2,aerr);
     attitude *= dq;
     attitude.normalize();
     cosineTheta = 1 - 2 * (attitude[1]*attitude[1] + attitude[2]*attitude[2]);
+ 
 }
 
 void AttitudeEstimator::predict(const Vec<3>& gyro, float step)
@@ -60,9 +68,8 @@ void AttitudeEstimator::update(const Vec<3>& magneto)
     Square<3> H = crossMat(predict);
     Square<3> Ht = H.transpose();
 
-    Square<3> R = outerprod(z, z);
-    R -= 1;
-    R *= -MAG_VAR/B2;
+    Square<3> R = -MAG_VAR/B2 * Square<3>::eye();
+
 
     Square<3> S = covar_map(H,covar) + R;
     Square<3> K = covar*Ht*inv(S);
