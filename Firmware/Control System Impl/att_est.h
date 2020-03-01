@@ -14,9 +14,7 @@ public:
     Quaternion attitude;
     float cosineTheta;
 
-
-    AttitudeEstimator();
-    void reset();
+    void init(const Quaternion& q0);
     void setReference(const Vec<3>& refMag);
     void predict(const Vec<3>& gyro, float step);
     void update(const Vec<3>& magneto);

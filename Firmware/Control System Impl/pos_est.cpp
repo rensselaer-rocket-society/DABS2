@@ -6,15 +6,10 @@
 
 namespace Control {
 
-PositionEstimator::PositionEstimator()
-{
-    reset();
-}
-
-void PositionEstimator::reset()
+void PositionEstimator::init(float alt,float velocity)
 {
     covar.fill(0);
-    state.fill(0);
+    state = vec2(alt,velocity);
     K = 0;
 }
 

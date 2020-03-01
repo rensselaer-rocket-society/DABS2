@@ -1,21 +1,16 @@
 #include <math.h>
 #include "drag_control.h"
-
-#define G_CONST 9.81
-#define CONVERGENCE_MIN 0.1
-#define MAX_ITERATIONS 10
-
-#define APOGEE_TARGET 100
+#include "conf.h"
 
 namespace Control {
 
 
 PositionEstimator p_est;
 AttitudeEstimator a_est;
+float ground_alt = 0;
 
-bool new_data = false;
 
-float targetK = 0.1;
+float targetK = BURNOUT_K_EST;
 float currentProjection = 0;
 
 
@@ -52,49 +47,38 @@ static void updateDragCalcs()
     if(iterations != MAX_ITERATIONS) targetK = K;
 }
 
-static void updateFlapControl() {
-    float Kerror = targetK - p_est.K;
-
-
-}
-
-
-void setReferenceMagneticField(const Vec<3>& B){
-    a_est.setReference(B);
-}
-
-void on_IMU(const Vec<3>& a, const Vec<3>& g, const Vec<3>& m){
-    float step = 0.01; //TODO Acutally time this?
-
-    a_est.predict(g,step);
-    a_est.update(m);
+void Estimator_IMU(uint32_t step_ms, const Vec<3>& a, const Vec<3>& g, const Vec<3>& m){
+    float step = step_ms/1000.0f;
 
     p_est.predict(-a[2],a_est.cosineTheta,step);
-
-    new_data = true;
+    a_est.predict(g,step);
+    a_est.update(m);
 }
-void on_Altimeter(float altitude){
-    p_est.update(altitude);
-
-    new_data = true;
+void Estimator_Altimeter(float altitude){
+    p_est.update(altitude-ground_alt);
 }
 
-void Setup()
+void Init(float g_alt, const Vec<3>& grav_vec,const Vec<3>& B)
 {
-    p_est.reset();
-    a_est.reset();
+    ground_alt = g_alt;
+    p_est.init(0,0);
+
+    // Since we don't care about the inertial heading, just find the
+    // simplest rotation that rotates grav_vec to khat (pitch directly back up)
+    float ang = acos(grav_vec[2]/norm(grav_vec)); // This is acos(k_hat dot grav)
+    Vec<3> axis = vec3(grav_vec[1],-grav_vec[0],0); // Simplified grav_vec x k_hat
+    axis /= norm(axis);
+    Quaternion orientation(cos(ang/2.0f), sin(ang/2.0f)*axis);
+
+    a_est.init(orientation);
+    a_est.setReference(orientation.rotate(B));
 }
 
-void Tasks()
+float Controller_EvalControlLaw()
 {
-
-    if(new_data)
-    {
-        updateDragCalcs();
-        updateFlapControl();
-        new_data = false;
-    }
-
+    updateDragCalcs();
+    float Kerror = targetK - p_est.K;
+    return Kerror;
 }
 
 }

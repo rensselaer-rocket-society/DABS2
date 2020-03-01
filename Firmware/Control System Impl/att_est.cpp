@@ -21,16 +21,11 @@ static inline float tanc(float x) {
     return tanf(x)/x;
 }
 
-AttitudeEstimator::AttitudeEstimator()
+void AttitudeEstimator::init(const Quaternion& q0)
 {
-    reset();
-}
-
-void AttitudeEstimator::reset()
-{
-    attitude = Quaternion(1,0,0,0);
+    attitude = q0;
     covar.fill(0);
-    cosineTheta = 1;
+    cosineTheta = 1 - 2 * (q0[1]*q0[1] + q0[2]*q0[2]);
 }
 
 

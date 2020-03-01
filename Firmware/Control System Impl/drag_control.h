@@ -13,12 +13,13 @@ extern AttitudeEstimator a_est;
 extern float targetK;
 extern float currentProjection;
 
-void setReferenceMagneticField(const Vec<3>& B);
 
-void on_IMU(const Vec<3>& a, const Vec<3>& g, const Vec<3>& m);
-void on_Altimeter(float altitude);
+void Estimator_IMU(uint32_t step_ms, const Vec<3>& a, const Vec<3>& g, const Vec<3>& m);
+void Estimator_Altimeter(float altitude);
 
-void Tasks();
+void Init(float ground_alt, const Vec<3>& grav_vec,const Vec<3>& B);
+float Controller_EvalControlLaw();
+
 
 }
 

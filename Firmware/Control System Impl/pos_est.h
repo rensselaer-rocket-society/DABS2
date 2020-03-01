@@ -18,8 +18,7 @@ public:
         return 0.5*state[0]*state[0];
     }
 
-    PositionEstimator();
-    void reset();
+    void init(float alt, float velocity);
     void predict(float accel, float cost, float step);
     void update(float alt);
 };

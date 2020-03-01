@@ -222,6 +222,11 @@ float innerprod(const Vec<N>& v1, const Vec<N>& v2)
     return sum;
 }
 
+inline Vec<3> crossp(const Vec<3>& v1, const Vec<3>& v2)
+{
+    return vec3(v1[1]*v2[2]-v1[2]*v2[1], v1[2]*v1[0]-v1[0]*v2[2], v1[0]*v2[1]-v1[1]*v2[0]);
+}
+
 template <uint32_t N>
 float normsquare(const Vec<N>& v)
 {
