@@ -1,7 +1,6 @@
 #include "att_est.h"
-
-#define GYRO_VAR 1e-5
-#define MAG_VAR 0.1
+#include "conf.h"
+#include "Arduino.h"
 
 namespace Control {
 
@@ -17,7 +16,7 @@ static inline Square<3> crossMat(const Vec<3>& v) {
     return ret;
 }
 static inline float tanc(float x) {
-    if(fabs(x)<1e-4) return 1;
+    if(fabs(x)<1e-5) return 1;
     return tanf(x)/x;
 }
 
@@ -25,9 +24,10 @@ void AttitudeEstimator::init(const Quaternion& q0)
 {
     attitude = q0;
     covar.fill(0);
+    ang_vel.fill(0);
+    // covar = Square<3>::eye()*1e-6;
     cosineTheta = 1 - 2 * (q0[1]*q0[1] + q0[2]*q0[2]);
 }
-
 
 void AttitudeEstimator::setReference(const Vec<3>& refMag)
 {
@@ -46,9 +46,9 @@ inline void AttitudeEstimator::resetq(const Vec<3>& aerr)
 
 void AttitudeEstimator::predict(const Vec<3>& gyro, float step)
 {
+    ang_vel = gyro;
     float scaling = step*tanc(0.5*norm(gyro)*step);
     Vec<3> aerr = scaling * gyro;
-
     resetq(aerr);
 
     float addedvar = scaling*scaling*GYRO_VAR;
@@ -62,14 +62,18 @@ void AttitudeEstimator::update(const Vec<3>& magneto)
     Vec<3> predict = attitude.invrotate(inertialMag);
     Square<3> H = crossMat(predict);
     Square<3> Ht = H.transpose();
+    // printMat(Serial,Ht);
 
-    Square<3> R = -MAG_VAR/B2 * Square<3>::eye();
-
+    Vec<3> motion_blur_dir = crossp(ang_vel,magneto);
+    Square<3> R = (MAG_VAR * Square<3>::eye() + MAG_BLUR_VAR * outerprod(motion_blur_dir,motion_blur_dir))/B2;
+    // printMat(Serial,covar*1e6);
 
     Square<3> S = covar_map(H,covar) + R;
     Square<3> K = covar*Ht*inv(S);
+    // printMat(Serial,S*1e6);
 
     Vec<3> aerr = K * (z-predict);
+    // printMat(Serial,aerr*1e3);
     covar = (Square<3>::eye() - K*H)*covar;
 
     resetq(aerr);

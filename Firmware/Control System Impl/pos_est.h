@@ -10,6 +10,7 @@ public:
     float K;
     Vec<2> state;
     Square<2> covar;
+    float gravity;
     
     inline float getAltitude() const {
         return state[1];
@@ -21,6 +22,8 @@ public:
     void init(float alt, float velocity);
     void predict(float accel, float cost, float step);
     void update(float alt);
+
+    void setGravity(float grav);
 };
 
 }

@@ -150,6 +150,22 @@ inline std::ostream& operator<<(std::ostream& out, const Quaternion& q)
     return out;
 }
 
+#else
+
+#include <Print.h>
+
+inline void printQuat(Print& out, const Quaternion& q)
+{
+    out.print('[');
+    out.print(q[0]);
+    for(uint32_t j = 1; j < 4; ++j)
+    {
+        out.print(',');
+        out.print(q[j]);
+    }
+    out.println(']');
+}
+
 #endif
 
 

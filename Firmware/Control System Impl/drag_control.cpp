@@ -1,12 +1,14 @@
 #include <math.h>
 #include "drag_control.h"
 #include "conf.h"
+#include <Arduino.h>
 
 namespace Control {
 
 
 PositionEstimator p_est;
 AttitudeEstimator a_est;
+Vec<3> gyro_bias;
 float ground_alt = 0;
 
 
@@ -47,21 +49,27 @@ static void updateDragCalcs()
     if(iterations != MAX_ITERATIONS) targetK = K;
 }
 
-void Estimator_IMU(uint32_t step_ms, const Vec<3>& a, const Vec<3>& g, const Vec<3>& m){
-    float step = step_ms/1000.0f;
+void Estimator_IMU(uint32_t step_us, const Vec<3>& a, const Vec<3>& g){
+    float step = step_us/1e6f;
 
     p_est.predict(-a[2],a_est.cosineTheta,step);
-    a_est.predict(g,step);
+    a_est.predict(g-gyro_bias,step);
+}
+void Estimator_Magnetometer(const Vec<3>& m)
+{
     a_est.update(m);
 }
+
 void Estimator_Altimeter(float altitude){
     p_est.update(altitude-ground_alt);
 }
 
-void Init(float g_alt, const Vec<3>& grav_vec,const Vec<3>& B)
+void Init(float g_alt, const Vec<3>& grav_vec, const Vec<3>& B, const Vec<3>& g_bias)
 {
     ground_alt = g_alt;
+    gyro_bias = g_bias;
     p_est.init(0,0);
+    p_est.setGravity(norm(grav_vec));
 
     // Since we don't care about the inertial heading, just find the
     // simplest rotation that rotates grav_vec to khat (pitch directly back up)
@@ -69,6 +77,12 @@ void Init(float g_alt, const Vec<3>& grav_vec,const Vec<3>& B)
     Vec<3> axis = vec3(grav_vec[1],-grav_vec[0],0); // Simplified grav_vec x k_hat
     axis /= norm(axis);
     Quaternion orientation(cos(ang/2.0f), sin(ang/2.0f)*axis);
+
+    // printMat(Serial,orientation.rotate(grav_vec));
+    // printMat(Serial,grav_vec);
+    // printMat(Serial,orientation.invrotate(vec3(0,0,norm(grav_vec))));
+
+    // while(1);
 
     a_est.init(orientation);
     a_est.setReference(orientation.rotate(B));

@@ -51,7 +51,7 @@ minimum height=3em, minimum width=6em]
 		\frac{d\epsilon}{dz} = -\frac{C_d\rho A}{m}\epsilon-g 
 	\end{equation}
 	
-	Here we will define a sort of 'drag constant' $K = \frac{m}{C_d\rho A}$ with units [\si{\per\meter}] which simplifies the equation to:
+	Here we will define a sort of 'drag constant' $K = \frac{C_d\rho A}{m} $ with units [\si{\per\meter}] which simplifies the equation to:
 	
 	\begin{equation}
 	\label{eqn:vertde}
@@ -185,8 +185,8 @@ minimum height=3em, minimum width=6em]
 		\draw[->] ([yshift=1cm]estimator.west) -| node[pos=0.17]{$\hat{K}$} node[suminminus,pos=0.95]{} (dragerror);
 		\draw[->] (altcalc) -- (dragconst);
 		\end{tikzpicture}
-		\label{fig:controlblock}
 		\caption{DABS Control System Block Diagram}
+		\label{fig:controlblock}
 	\end{figure}
 
 	The inversion of \eqref{eqn:kapogee} in the drag prediction step unfortunately cannot be done in closed form since $K$ is present both inside and outside the natural log.  However using the derivative in \eqref{eqn:kderiv} the root can be determined to an acceptable precision in a few iterations of Newton's method, using the update step in \eqref{eqn:newtons}.
@@ -259,16 +259,9 @@ minimum height=3em, minimum width=6em]
 	For the use of the magnetometer for orientation measurement, the same normalized unit vector comparison is used.  That is the measurement $\uvec{z}$ is the normalized vector in the direction of the measured magnetic field $\vec{B}$ ($\uvec{z} = \frac{\vec{B}}{B}$).  The model equations are then the same ($\uvec{v}$ is the reference magnetic field direction):
 	
 	\begin{equation}
-		\vec{h}(\hat{q}) = A(\hat{q})\uvec{v}\qquad\mat{H} = [A(\hat{q})\uvec{v}]_\times
+		\vec{h}(\hat{q}) = A(\hat{q})\uvec{v}\qquad\mat{H} = [A(\hat{q})\uvec{v}]_\times\qquad
+		\mat{R} = \frac{\sigma_{mag}^2}{B^2}\mat{I_{3\times 3}}
 	\end{equation}
-	
-	For this new project, the advice of the original report was taken and the measurement noise will now be properly mapped through the normalization function, rather than simply rescaled.  The full derivation is not presented here, but the result ends up being:	
-	
-	\begin{equation}
-		\mat{R} = \frac{\sigma_{mag}^2}{B^2}\left(\mat{I_{3\times 3}} - \uvec{z}\uvec{z}^T\right)
-	\end{equation}
-	
-	Which indicated the added correction to the scaling-only method is to subtract a factor of $\uvec{z}\uvec{z}^T$ which presumably lessens the normal $\uvec{z}$-direction variance so as to smear across the surface of the sphere.
 	
 	\paragraph{Computing $\theta$ from the Attitude Quaternion}
 	
@@ -279,5 +272,9 @@ minimum height=3em, minimum width=6em]
 	\end{equation} 
 	
 	Where the final result is the extracted component of the quaternion derived rotation matrix.  Even better, the actual value of $\theta$ is actually never used, and it is only $\cos\theta$ that appears in the position filter and in the corrected apogee estimator.  Thus it is not even necessary to perform the (somewhat expensive) $\arccos$ operation or the subsequent normal trigonometry in the other formulae.
+	
+	\subsection{Actuator Dynamics}
+	
+	
 	
 \end{document}

@@ -269,6 +269,37 @@ std::ostream& operator<<(std::ostream& out, const Mat<N,M>& m)
     return out;
 }
 
+#else
+
+#include <Print.h>
+template <uint32_t N, uint32_t M>
+void printMat(Print& out, const Mat<N,M>& m)
+{
+    for(uint32_t i = 0; i < N; ++i){
+        out.print('[');
+        out.print(m.at(i,0));
+        for(uint32_t j = 1; j < M; ++j)
+        {
+            out.print(',');
+            out.print(m.at(i,j));
+        }
+        out.println(']');
+    }
+}
+
+template <uint32_t N>
+void printVecHorz(Print& out, const Vec<N>& v)
+{
+    out.print('[');
+    out.print(v[0]);
+    for(uint32_t j = 1; j < N; ++j)
+    {
+        out.print(',');
+        out.print(v[j]);
+    }
+    out.println("]^T");
+}
+
 #endif
 
 

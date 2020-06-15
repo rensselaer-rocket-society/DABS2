@@ -8,6 +8,7 @@ namespace Control {
 
 class AttitudeEstimator {
     Vec<3> inertialMag;
+    Vec<3> ang_vel;
     void resetq(const Vec<3>& aerr);
 public:
     Square<3> covar;
